@@ -2,149 +2,144 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Brain Dump To-Do</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Brain Dump To-Do List</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <style>
-    .task {
+    .reminder-btn {
+      margin: 0.25rem 0;
+      width: 100%;
+    }
+    .task-card {
       padding: 1rem;
-      border-radius: 8px;
+      border-radius: 0.5rem;
       margin-bottom: 1rem;
       color: #000;
     }
-    .task .title {
+    .task-title {
       font-weight: bold;
+      font-size: 1.2rem;
     }
-    .task .buttons {
-      margin-top: 0.5rem;
-    }
-    .reminder-btn {
+    .task-actions button {
       margin-right: 0.5rem;
-    }
-    .completed {
-      text-decoration: line-through;
-      opacity: 0.6;
+      margin-top: 0.5rem;
     }
   </style>
 </head>
 <body class="container py-4">
-  <h1 class="mb-4">🧠 Brain Dump To-Do List</h1>
+  <h2>🧠 Brain Dump To-Do List</h2>
 
-  <form id="taskForm">
-    <div class="mb-3">
-      <label for="title" class="form-label">Title *</label>
-      <input type="text" id="title" class="form-control" required>
-    </div>
-    <div class="mb-3">
-      <label for="description" class="form-label">Description (optional)</label>
-      <textarea id="description" class="form-control" rows="2"></textarea>
-    </div>
-    <div class="mb-3">
-      <label class="form-label">Reminder:</label><br>
-      <button type="button" class="btn btn-danger reminder-btn" data-time="1h">Remind in 1 hour</button>
-      <button type="button" class="btn btn-warning reminder-btn" data-time="1d">Remind in 1 day</button>
-      <button type="button" class="btn btn-success reminder-btn" data-time="1w">Remind in 1 week</button>
-      <button type="button" class="btn btn-info reminder-btn" data-time="2w">Remind in 2 weeks</button>
-    </div>
-    <input type="hidden" id="selectedReminder" required>
-    <button type="submit" class="btn btn-primary">Add Task</button>
-  </form>
+  <div class="mb-3">
+    <label for="title" class="form-label">Title *</label>
+    <input type="text" class="form-control" id="title" required />
+  </div>
 
-  <hr class="my-4">
-  <h2>📝 Tasks</h2>
+  <div class="mb-3">
+    <label for="description" class="form-label">Description (optional)</label>
+    <textarea class="form-control" id="description" rows="2"></textarea>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Reminder:</label>
+    <div>
+      <button class="btn btn-danger reminder-btn" onclick="selectReminder('1 hour')">Remind in 1 hour</button>
+      <button class="btn btn-warning reminder-btn" onclick="selectReminder('1 day')">Remind in 1 day</button>
+      <button class="btn btn-success reminder-btn" onclick="selectReminder('1 week')">Remind in 1 week</button>
+      <button class="btn btn-info reminder-btn" onclick="selectReminder('2 weeks')">Remind in 2 weeks</button>
+    </div>
+  </div>
+
+  <button class="btn btn-primary mb-4" onclick="addTask()">Add Task</button>
+
+  <hr />
+  <h4>📝 Tasks</h4>
   <div id="taskList"></div>
 
   <script>
-    const reminderMap = {
-      '1h': { label: 'Remind in 1 hour', color: '#FF4C4C' },
-      '1d': { label: 'Remind in 1 day', color: '#F9D342' },
-      '1w': { label: 'Remind in 1 week', color: '#4CAF50' },
-      '2w': { label: 'Remind in 2 weeks', color: '#82CAFF' },
+    const colorMap = {
+      '1 hour': '#FF4C4C',
+      '1 day': '#F9D342',
+      '1 week': '#4CAF50',
+      '2 weeks': '#82CAFF',
     };
 
-    const taskForm = document.getElementById('taskForm');
-    const taskList = document.getElementById('taskList');
-    const selectedReminder = document.getElementById('selectedReminder');
+    let selectedReminder = null;
 
-    document.querySelectorAll('.reminder-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        selectedReminder.value = btn.dataset.time;
-        document.querySelectorAll('.reminder-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
+    function selectReminder(time) {
+      selectedReminder = time;
+      document.querySelectorAll('.reminder-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.textContent.includes(time)) {
+          btn.classList.add('active');
+        }
       });
-    });
-
-    function saveTasks(tasks) {
-      localStorage.setItem('brainDumpTasks', JSON.stringify(tasks));
     }
 
-    function getTasks() {
-      return JSON.parse(localStorage.getItem('brainDumpTasks') || '[]');
+    function addTask() {
+      const title = document.getElementById('title').value.trim();
+      const description = document.getElementById('description').value.trim();
+
+      if (!title || !selectedReminder) {
+        alert('Please enter a title and choose a reminder time.');
+        return;
+      }
+
+      const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+      tasks.push({ title, description, reminder: selectedReminder });
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+
+      document.getElementById('title').value = '';
+      document.getElementById('description').value = '';
+      selectedReminder = null;
+      document.querySelectorAll('.reminder-btn').forEach(btn => btn.classList.remove('active'));
+
+      renderTasks();
     }
 
     function renderTasks() {
-      const tasks = getTasks();
+      const taskList = document.getElementById('taskList');
+      const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
       taskList.innerHTML = '';
-      tasks.forEach((task, index) => {
-        const div = document.createElement('div');
-        div.className = 'task';
-        div.style.backgroundColor = reminderMap[task.reminder].color;
-        if (task.done) div.classList.add('completed');
 
-        div.innerHTML = `
-          <div class="title">${task.title}</div>
-          <div>${task.description || ''}</div>
-          <div><small>${reminderMap[task.reminder].label}</small></div>
-          <div class="buttons">
-            <button class="btn btn-sm btn-outline-success me-2" onclick="toggleDone(${index})">${task.done ? 'Undo' : 'Mark as Done'}</button>
-            <button class="btn btn-sm btn-outline-secondary" onclick="editReminder(${index})">Change Reminder</button>
+      tasks.forEach((task, index) => {
+        const card = document.createElement('div');
+        card.className = 'task-card';
+        card.style.backgroundColor = colorMap[task.reminder] || '#fff';
+
+        card.innerHTML = `
+          <div class="task-title">${task.title}</div>
+          <div>${task.description}</div>
+          <div><strong>⏰ ${task.reminder}</strong></div>
+          <div class="task-actions mt-2">
+            <button class="btn btn-sm btn-secondary" onclick="editReminder(${index})">Edit Reminder</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteTask(${index})">Delete</button>
           </div>
         `;
-        taskList.appendChild(div);
+
+        taskList.appendChild(card);
       });
     }
 
-    function toggleDone(index) {
-      const tasks = getTasks();
-      tasks[index].done = !tasks[index].done;
-      saveTasks(tasks);
-      renderTasks();
-    }
-
     function editReminder(index) {
-      const newTime = prompt('Enter new reminder: 1h, 1d, 1w, 2w');
-      if (reminderMap[newTime]) {
-        const tasks = getTasks();
+      const newTime = prompt('Change reminder to: 1 hour, 1 day, 1 week, or 2 weeks?');
+      if (colorMap[newTime]) {
+        const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
         tasks[index].reminder = newTime;
-        saveTasks(tasks);
+        localStorage.setItem('tasks', JSON.stringify(tasks));
         renderTasks();
       } else {
-        alert('Invalid reminder. Use: 1h, 1d, 1w, 2w');
+        alert('Invalid reminder time.');
       }
     }
 
-    taskForm.addEventListener('submit', e => {
-      e.preventDefault();
-      if (!selectedReminder.value) {
-        alert('Please select a reminder.');
-        return;
-      }
-      const task = {
-        title: document.getElementById('title').value.trim(),
-        description: document.getElementById('description').value.trim(),
-        reminder: selectedReminder.value,
-        done: false,
-      };
-      const tasks = getTasks();
-      tasks.push(task);
-      saveTasks(tasks);
-      taskForm.reset();
-      selectedReminder.value = '';
-      document.querySelectorAll('.reminder-btn').forEach(b => b.classList.remove('active'));
+    function deleteTask(index) {
+      const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+      tasks.splice(index, 1);
+      localStorage.setItem('tasks', JSON.stringify(tasks));
       renderTasks();
-    });
+    }
 
-    renderTasks();
+    window.onload = renderTasks;
   </script>
 </body>
 </html>
