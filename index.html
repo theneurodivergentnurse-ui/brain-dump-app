@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Brain Dump To‑Do</title>
-  <meta name="viewport" content="width=device‑width, initial‑scale=1">
+  <title>To-Do List</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     .task {
@@ -14,7 +14,6 @@
     }
     .task .title {
       font-weight: bold;
-      font-size: 1.1rem;
     }
     .task .buttons {
       margin-top: 0.5rem;
@@ -29,7 +28,7 @@
   </style>
 </head>
 <body class="container py-4">
-  <h1 class="mb-4">🧠 Brain Dump To‑Do List</h1>
+  <h1 class="mb-4">🧠 Brain Dump To-Do List</h1>
 
   <form id="taskForm">
     <div class="mb-3">
@@ -42,10 +41,10 @@
     </div>
     <div class="mb-3">
       <label class="form-label">Reminder:</label><br>
-      <button type="button" class="btn btn-danger reminder-btn" data-time="1h">Remind in 1 hour</button>
-      <button type="button" class="btn btn-warning reminder-btn" data-time="1d">Remind in 1 day</button>
-      <button type="button" class="btn btn-success reminder-btn" data-time="1w">Remind in 1 week</button>
-      <button type="button" class="btn btn-info reminder-btn" data-time="2w">Remind in 2 weeks</button>
+      <button type="button" class="btn btn-danger reminder-btn" data-time="1h">Remind in 1 hour</button>
+      <button type="button" class="btn btn-warning reminder-btn" data-time="1d">Remind in 1 day</button>
+      <button type="button" class="btn btn-success reminder-btn" data-time="1w">Remind in 1 week</button>
+      <button type="button" class="btn btn-info reminder-btn" data-time="2w">Remind in 2 weeks</button>
     </div>
     <input type="hidden" id="selectedReminder" required>
     <button type="submit" class="btn btn-primary">Add Task</button>
@@ -97,37 +96,30 @@
           <div>${task.description || ''}</div>
           <div><small>${reminderMap[task.reminder].label}</small></div>
           <div class="buttons">
-            <input type="checkbox" id="chk-${index}" ${task.done ? 'checked' : ''} /> <label for="chk-${index}">Archive</label>
-            <button class="btn btn-sm btn-outline-secondary ms-2" onclick="editReminder(${index})">Change Reminder</button>
+            <button class="btn btn-sm btn-outline-success me-2" onclick="toggleDone(${index})">${task.done ? 'Undo' : 'Mark as Done'}</button>
+            <button class="btn btn-sm btn-outline-secondary" onclick="editReminder(${index})">Change Reminder</button>
           </div>
         `;
-
         taskList.appendChild(div);
-
-        // handle checking
-        document.getElementById(`chk-${index}`).addEventListener('change', () => {
-          toggleDone(index);
-        });
       });
     }
 
     function toggleDone(index) {
       const tasks = getTasks();
       tasks[index].done = !tasks[index].done;
-      tasks[index].completedAt = new Date().toISOString();
       saveTasks(tasks);
       renderTasks();
     }
 
     function editReminder(index) {
-      const newTime = prompt('Enter new reminder key: 1h, 1d, 1w, 2w');
+      const newTime = prompt('Enter new reminder: 1h, 1d, 1w, 2w');
       if (reminderMap[newTime]) {
         const tasks = getTasks();
         tasks[index].reminder = newTime;
         saveTasks(tasks);
         renderTasks();
       } else {
-        alert('Invalid reminder. Use: 1h, 1d, 1w, or 2w');
+        alert('Invalid reminder. Use: 1h, 1d, 1w, 2w');
       }
     }
 
@@ -141,7 +133,7 @@
         title: document.getElementById('title').value.trim(),
         description: document.getElementById('description').value.trim(),
         reminder: selectedReminder.value,
-        done: false
+        done: false,
       };
       const tasks = getTasks();
       tasks.push(task);
@@ -152,8 +144,8 @@
       renderTasks();
     });
 
+    // Load tasks when page is opened
     renderTasks();
   </script>
-
 </body>
 </html>
